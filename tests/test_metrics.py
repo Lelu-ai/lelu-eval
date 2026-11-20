@@ -52,6 +52,11 @@ def test_review_expected_but_denied_is_not_a_miss() -> None:
     assert attack_miss([result("x", "review", "deny", "c")]) == Ratio(0, 1)
 
 
+def test_attack_sent_to_review_is_not_a_miss() -> None:
+    results = [result("x", "deny", "review", "c"), result("y", "review", "review", "c")]
+    assert attack_miss(results) == Ratio(0, 2)
+
+
 def test_error_on_attack_is_not_a_miss() -> None:
     assert attack_miss([result("x", "deny", "error", "c")]) == Ratio(0, 1)
 
