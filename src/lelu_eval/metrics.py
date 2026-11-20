@@ -136,3 +136,33 @@ def compute_metrics(results: Sequence[CaseResult]) -> Metrics:
         categories=category_stats(results),
         wrong=[r for r in results if not r.correct],
     )
+
+
+@dataclass(frozen=True)
+class Change:
+    """A case whose correctness changed between two runs."""
+
+    before: CaseResult
+    after: CaseResult
+
+
+@dataclass(frozen=True)
+class RunDiff:
+    regressions: list[Change]
+    fixes: list[Change]
+
+
+def diff_results(before: Sequence[CaseResult], after: Sequence[CaseResult]) -> RunDiff:
+    """Regressions were correct before and wrong after; fixes are the reverse.
+
+    Cases are matched by id. A case present in only one run is ignored.
+    """
+    after_by_id = {r.case.id: r for r in after}
+    regressions: list[Change] = []
+    fixes: list[Change] = []
+    for old in before:
+        new = after_by_id.get(old.case.id)
+        if new is None or old.correct == new.correct:
+            continue
+        (regressions if old.correct else fixes).append(Change(old, new))
+    return RunDiff(regressions=regressions, fixes=fixes)
