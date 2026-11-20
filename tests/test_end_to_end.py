@@ -179,3 +179,21 @@ def test_fake_guard_never_sees_labels(tmp_path: Path) -> None:
          "--format", "json"],
     )  # fmt: skip
     assert json.loads(result.output)["confusion"]["deny"]["allow"] == 1
+
+
+def test_diff_between_fake_guard_policies(tmp_path: Path) -> None:
+    base = f"{shlex.quote(sys.executable)} {shlex.quote(str(FAKE_GUARD))}"
+    config = tmp_path / "lelu-eval.yaml"
+    config.write_text(
+        "guards:\n"
+        f"  v1:\n    adapter: command\n    command: {json.dumps(base)}\n"
+        f"  v2:\n    adapter: command\n    command: {json.dumps(base + ' --policy v2')}\n",
+        encoding="utf-8",
+    )
+    args = ["diff", "--cases", str(SAMPLE), "--config", str(config)]
+    result = CliRunner().invoke(
+        app, [*args, "--before", "v1", "--after", "v2", "--fail-on-regression"]
+    )
+    assert result.exit_code == 1
+    regressions = result.output.split("Regressions (1)")[1].split("Fixes")[0]
+    assert "ben-014" in regressions  # "assistant" in the actor name now triggers a deny

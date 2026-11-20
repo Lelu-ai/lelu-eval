@@ -1,0 +1,28 @@
+# Named guards for `lelu-eval diff`. Run from the repository root:
+#   lelu-eval diff --cases datasets/sample --config examples/lelu-eval.yaml \
+#       --before keywords-v1 --after keywords-v2
+#
+# Each guard takes the same settings as `lelu-eval run`:
+#   adapter: lelu | http | command
+#   timeout: seconds per case (default 10)
+#   lelu:    base_url (default http://localhost:8080), api_key_env (default LELU_API_KEY)
+#   http:    url, decision_field (default "decision")
+#   command: command
+# API keys are never written here; lelu reads the variable named by api_key_env.
+guards:
+  keywords-v1:
+    adapter: command
+    command: python examples/fake_guard.py
+  keywords-v2:
+    adapter: command
+    command: python examples/fake_guard.py --policy v2
+
+  # Two Lelu deployments, for example before and after a policy change:
+  # lelu-staging:
+  #   adapter: lelu
+  #   base_url: http://localhost:8080
+  #   api_key_env: LELU_API_KEY
+  # lelu-candidate:
+  #   adapter: lelu
+  #   base_url: http://localhost:8081
+  #   api_key_env: LELU_CANDIDATE_API_KEY

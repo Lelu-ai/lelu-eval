@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Lint
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: Types
+        run: mypy
+      - name: Tests
+        run: pytest
+      - name: Quick start smoke test
+        run: |
+          lelu-eval --help
+          lelu-eval validate datasets/sample
+          lelu-eval run --cases datasets/sample --adapter command --command "python examples/fake_guard.py"
+          set +e
+          lelu-eval run --cases datasets/sample --adapter command --command "python examples/fake_guard.py" \
+            --max-miss-rate 0.05 --max-false-block-rate 0.02 --format markdown --out report.md
+          code=$?
+          set -e
+          test "$code" -eq 1 || { echo "expected the gate to fail with exit 1, got $code"; exit 1; }
+          test -s report.md
