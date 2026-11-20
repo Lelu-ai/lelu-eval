@@ -1,0 +1,61 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lelu-eval"
+version = "0.1.0"
+description = "pytest for agent guardrails: check that a guard allows, denies and escalates the right agent tool calls."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["ai-agents", "guardrails", "evaluation", "security", "testing"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Security",
+]
+dependencies = [
+    "pydantic>=2",
+    "httpx>=0.27",
+    "typer>=0.12",
+    "rich>=13",
+    "pyyaml>=6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-httpx>=0.30",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "types-PyYAML",
+]
+
+[project.scripts]
+lelu-eval = "lelu_eval.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lelu_eval"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+plugins = ["pydantic.mypy"]
+files = ["src", "tests", "examples"]
+mypy_path = "src"
+explicit_package_bases = true
